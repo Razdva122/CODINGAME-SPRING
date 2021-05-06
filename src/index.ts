@@ -84,6 +84,7 @@ class Game {
 
   getNextAction(): string {
     const waitActions = this.possibleActions.filter((el) => el.type === WAIT);
+    const growActions = this.possibleActions.filter((el) => el.type === GROW);
     const completeActions =
       this.possibleActions
         .filter((el) => el.type === COMPLETE)
@@ -93,7 +94,17 @@ class Game {
           return bCell.richness - aCell.richness;
         });
 
-    return completeActions.length ? completeActions[0].toString() : waitActions[0].toString();
+    let action: Action;
+
+    if (completeActions.length) {
+      action = completeActions[0];
+    } else if (growActions.length) {
+      action = growActions[0];
+    } else {
+      action = waitActions[0]
+    }
+
+    return action.toString();
   }
 }
 
