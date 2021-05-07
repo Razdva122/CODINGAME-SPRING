@@ -71,11 +71,12 @@ class Action {
 
 class Game {
   day = 0;
+  lastDay = 23;
   round = 0;
   nutrients = 0;
   cells: Cell[] = [];
   possibleActions: Action[] = [];
-  trees = [];
+  trees: Tree[] = [];
   mySun = 0;
   myScore = 0;
   opponentSun = 0;
@@ -83,8 +84,54 @@ class Game {
   opponentIsWaiting = false;
 
   getNextAction(): string {
+    const myTrees = this.trees.filter((el) => el.isMine);
+
     const waitActions = this.possibleActions.filter((el) => el.type === WAIT);
-    const growActions = this.possibleActions.filter((el) => el.type === GROW);
+
+    const growActions =
+        this.possibleActions
+            .filter((el) => el.type === GROW)
+            .sort((a, b) => {
+                const aTree = this.trees.find((el) => el.cellIndex === a.targetCellIdx);
+                const bTree = this.trees.find((el) => el.cellIndex === b.targetCellIdx);
+                const amountATrees =
+                    myTrees
+                        .filter((tree) => tree.size === (aTree.size + 1))
+                        .length;
+
+                const amountBTrees =
+                    myTrees
+                        .filter((tree) => tree.size === (bTree.size + 1))
+                        .length;
+
+                return (amountATrees - aTree.size) - (amountBTrees - bTree.size);
+            });
+
+    const seedActions =
+      this.possibleActions
+        .filter((el) => el.type === SEED)
+        .sort((a, b) => {
+          const aCellNeighbors = this.cells
+            .find((el) => el.index === a.targetCellIdx)
+            .neighbors
+            .filter((el) => el !== -1)
+            .filter((el) => this.trees.find((tree) => tree.cellIndex === el && tree.size > 0))
+            .length;
+
+          const bCellNeighbors = this.cells
+            .find((el) => el.index === b.targetCellIdx)
+            .neighbors
+            .filter((el) => el !== -1)
+            .filter((el) => this.trees.find((tree) => tree.cellIndex === el && tree.size > 0))
+            .length;
+
+          return aCellNeighbors - bCellNeighbors;
+        });
+
+    if (this.mySun < 5) {
+      seedActions.length = 0;
+    }
+
     const completeActions =
       this.possibleActions
         .filter((el) => el.type === COMPLETE)
@@ -94,14 +141,41 @@ class Game {
           return bCell.richness - aCell.richness;
         });
 
+    /*
+     * 1. [grow, seed, wait]
+     * 2. [grow, seed, wait]
+     * 3. [grow, seed, complete, wait]
+     * 4. [complete, grow, wait]
+     */
+    const actions = [
+      [growActions, seedActions, waitActions], 
+      [growActions, seedActions, waitActions],
+      [growActions, seedActions, waitActions],
+      [growActions, seedActions, waitActions],
+      [growActions, seedActions, waitActions],
+      [growActions, seedActions, waitActions],
+      [growActions, seedActions, waitActions],
+      [growActions, seedActions, waitActions],
+      [growActions, seedActions, waitActions],
+      [growActions, waitActions],
+      [completeActions, growActions, waitActions],
+    ];
+    
+    const currentCycle = actions[Math.floor((this.day / (this.lastDay + 1)) * actions.length)];
+
     let action: Action;
 
-    if (completeActions.length) {
-      action = completeActions[0];
-    } else if (growActions.length) {
-      action = growActions[0];
+    const maxTreeAmount = this.day > this.lastDay / 2 ? 5 - Math.floor(((this.day - 12) / (this.lastDay - 11)) * 4) : 5;
+    console.error('maxTreeAmount', maxTreeAmount);
+    if (myTrees.filter((el) => el.size === 3).length > maxTreeAmount) {
+        action = completeActions[0] || waitActions[0];
     } else {
-      action = waitActions[0]
+        for (let i = 0; i < currentCycle.length; i += 1) {
+            if (currentCycle[i].length) {
+                action = currentCycle[i][0];
+                break;
+            }
+        }
     }
 
     return action.toString();
@@ -136,7 +210,7 @@ while (true) {
   const numberOfTrees = parseInt(readline());
 
   for (let i = 0; i < numberOfTrees; i++) {
-    const [cellIndex, size, isMine, isDormant] = readline().split(' ').map(parseInt);
+    const [cellIndex, size, isMine, isDormant] = readline().split(' ').map((el) => parseInt(el, 10));
     game.trees.push(
       new Tree(cellIndex, size, isMine !== 0, isDormant !== 0)
     )
@@ -150,6 +224,5 @@ while (true) {
   }
 
   const action = game.getNextAction();
-  console.error(game.possibleActions);
-  console.log(action);
+  console.log(action, (Math.floor(Math.random() * 1000000)).toString(16));
 }
