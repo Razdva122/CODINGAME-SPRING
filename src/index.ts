@@ -111,21 +111,33 @@ class Game {
       this.possibleActions
         .filter((el) => el.type === SEED)
         .sort((a, b) => {
-          const aCellNeighbors = this.cells
-            .find((el) => el.index === a.targetCellIdx)
-            .neighbors
-            .filter((el) => el !== -1)
-            .filter((el) => this.trees.find((tree) => tree.cellIndex === el && tree.size > 0))
-            .length;
+          if (this.day < this.lastDay + 1 / 3) {
+              const aCellNeighbors = this.cells
+              .find((el) => el.index === a.targetCellIdx)
+              .neighbors
+              .filter((el) => el !== -1)
+              .filter((el) => this.trees.find((tree) => tree.cellIndex === el && tree.size > 0))
+              .length;
 
-          const bCellNeighbors = this.cells
-            .find((el) => el.index === b.targetCellIdx)
-            .neighbors
-            .filter((el) => el !== -1)
-            .filter((el) => this.trees.find((tree) => tree.cellIndex === el && tree.size > 0))
-            .length;
+            const bCellNeighbors = this.cells
+              .find((el) => el.index === b.targetCellIdx)
+              .neighbors
+              .filter((el) => el !== -1)
+              .filter((el) => this.trees.find((tree) => tree.cellIndex === el && tree.size > 0))
+              .length;
 
-          return aCellNeighbors - bCellNeighbors;
+            return aCellNeighbors - bCellNeighbors;
+          } else {
+            const indexes = [
+              { start: 0, end: 6, value: 0},
+              { start: 7, end: 18, value: 1},
+              { start: 19, end: 36, value: 2},
+            ];
+
+            const aValue = indexes.find((el) => a.targetCellIdx >= el.start && a.targetCellIdx <= el.end).value;
+            const bValue = indexes.find((el) => a.targetCellIdx >= el.start && a.targetCellIdx <= el.end).value;
+            return aValue - bValue;
+          }
         });
 
     if (this.mySun < 5) {
@@ -159,6 +171,7 @@ class Game {
       [growActions, seedActions, waitActions],
       [growActions, waitActions],
       [completeActions, growActions, waitActions],
+      [completeActions, waitActions],
     ];
     
     const currentCycle = actions[Math.floor((this.day / (this.lastDay + 1)) * actions.length)];

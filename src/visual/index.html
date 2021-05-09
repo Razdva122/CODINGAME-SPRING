@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code in game</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+</head>
+<body>
+    <div id="app">
+        <div class="menu">
+            <div class="day-simulator">
+                <template v-if="selectedDay === null">
+                    <p>
+                        Select day for sun simulate:
+                    </p>
+                    <input type="text" v-model.number="inputDay">
+                    <button @click="simulateDay">simulate</button>
+                </template>
+                <template v-else>
+                    <input type="radio" id="rainbow" value="rainbow" v-model="selectedColorsScheme">
+                    <label for="rainbow">rainbow</label><br>
+                    <input type="radio" id="rainbowReverse" value="rainbowReverse" v-model="selectedColorsScheme">
+                    <label for="rainbowReverse">rainbowReverse</label><br>
+                    <input type="radio" id="twoColor" value="twoColor" v-model="selectedColorsScheme">
+                    <label for="twoColor">twoColor</label><br>
+
+                    <button @click="simulateDay">unsimulate</button>
+                </template>
+            </div>
+            <div class="get-cells">
+                <button v-if="!isJsonDisplayed" @click="showJson(true)">Get field in JSON</button>
+                <button v-else @click="showJson(false)">Hide JSON</button>
+            </div>
+        </div>
+        <div class="main">
+            <div class="grid-container">
+                <ol v-for="grid in grids" :class="grid.class">
+                    <li
+                        v-for="el, index in grid.elements" 
+                        class="hex"
+                        :class="{ 'hex--selected': el.index === selectedCellIndex }" 
+                        :style="{ background: grid.colors[index] }"
+                    >
+                        <div class="grid-element-content" @click="selectCell(el.index)"> {{ el.index }} </div>
+                    </li>
+                </ol>
+            </div>
+            <div class="info">
+                <span v-if="selectedDay !== null">
+                    Selected day: {{ selectedDay }}<br>
+                    Day cycle: {{ selectedDay % 6 }}/6<br>
+                    Sun coming from cells: {{ cycles[selectedDay % 6].start }}<br>
+                    Diff: {{ cycles[selectedDay % 6].diff }}
+                </span>
+                <span v-else-if="isJsonDisplayed">
+                    JSON of Cells in format:<br>
+                    Array { index, x, y, z }<br>
+
+                    <code>{{ jsonData }}</code>
+                </span>
+                <span v-else-if="selectedCell">
+                    Cell №{{ selectedCell.index }}.<br>
+                    Coordinates:<br>
+                    x: {{selectedCell.x}},<br>
+                    y: {{selectedCell.y}},<br>
+                    z: {{selectedCell.z}},<br>
+                </span>
+                <span v-else>
+                    Here will be info
+                </span>
+            </div>
+        </div>
+    </div>
+    <script src="js/script.js"></script>
+</body>
+</html>
