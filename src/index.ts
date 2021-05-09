@@ -171,7 +171,7 @@ class Game {
       [growActions, seedActions, waitActions],
       [growActions, waitActions],
       [completeActions, growActions, waitActions],
-      [completeActions, waitActions],
+      [completeActions, growActions, waitActions],
     ];
     
     const currentCycle = actions[Math.floor((this.day / (this.lastDay + 1)) * actions.length)];
