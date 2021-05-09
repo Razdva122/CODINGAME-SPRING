@@ -94,17 +94,8 @@ class Game {
             .sort((a, b) => {
                 const aTree = this.trees.find((el) => el.cellIndex === a.targetCellIdx);
                 const bTree = this.trees.find((el) => el.cellIndex === b.targetCellIdx);
-                const amountATrees =
-                    myTrees
-                        .filter((tree) => tree.size === (aTree.size + 1))
-                        .length;
 
-                const amountBTrees =
-                    myTrees
-                        .filter((tree) => tree.size === (bTree.size + 1))
-                        .length;
-
-                return (amountATrees - aTree.size) - (amountBTrees - bTree.size);
+                return bTree.size - aTree.size;
             });
 
     const seedActions =
@@ -178,7 +169,7 @@ class Game {
 
     let action: Action;
 
-    const maxTreeAmount = this.day > this.lastDay / 2 ? 5 - Math.floor(((this.day - 12) / (this.lastDay - 11)) * 4) : 5;
+    const maxTreeAmount = this.day > this.lastDay / 2 ? 6 - Math.floor(((this.day - 12) / (this.lastDay - 11)) * 4) : 6;
     console.error('maxTreeAmount', maxTreeAmount);
     if (myTrees.filter((el) => el.size === 3).length > maxTreeAmount) {
         action = completeActions[0] || waitActions[0];
@@ -237,5 +228,18 @@ while (true) {
   }
 
   const action = game.getNextAction();
-  console.log(action, (Math.floor(Math.random() * 1000000)).toString(16));
+  const info = 'My challenge website';
+  const link = 'bit.ly/33y3Szi';
+  const afterInfo = 'Also avaialble in my github';
+  let text = '';
+  if (game.day % 12 === 0) {
+      text = info;
+  }
+  if (game.day % 12 === 1) {
+      text = link;
+  }
+  if (game.day % 12 === 2) {
+      text = afterInfo;
+  }
+  console.log(action, text);
 }
