@@ -1,6 +1,7 @@
 var app = new Vue({
   el: '#app',
   data: {
+    showCoordinates: false,
     isJsonDisplayed: false,
     selectedCellIndex: null,
     selectedCellRadius: 'shadow',

@@ -36,6 +36,10 @@
         </div>
         <div class="main">
             <div class="grid-container">
+                <div class="coordinates-checkbox">
+                    <input type="checkbox" id="coordinates" name="coordinates" v-model="showCoordinates">
+                    <label for="coordinates">Show coordinates</label>
+                </div>
                 <ol v-for="grid in grids" :class="grid.class">
                     <li
                         v-for="el, index in grid.elements" 
@@ -52,7 +56,16 @@
                             }" 
                         :style="{ background: grid.colors[index] }"
                     >
-                        <div class="grid-element-content" @click="selectCell(el.index)"> {{ el.index }} </div>
+                        <div class="grid-element-content" @click="selectCell(el.index)"> 
+                            <template v-if="showCoordinates">
+                                x: {{ el.x }}<br>
+                                y: {{ el.y }}<br>
+                                z: {{ el.z }}<br>
+                            </template>
+                            <template v-else>
+                                {{ el.index }} 
+                            </template>
+                        </div>
                     </li>
                 </ol>
             </div>
