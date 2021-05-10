@@ -35,6 +35,17 @@ const COMPLETE = 'COMPLETE' as const;
 
 type TActions = 'WAIT' | 'SEED' | 'GROW' | 'COMPLETE';
 
+
+const profitSizes = [0.5, 0.25, 0.15, 0.075, 0.025];
+
+interface IDaySimulateResult {
+  sunProfit: 0 | 1 | 2 | 3,
+  block: {
+    enemy: number,
+    my: number,
+  }
+}
+
 class AbstractAction {
   type: TActions;
   targetCellIdx: number;
@@ -326,7 +337,23 @@ class Game {
 
   generateCompleteActions(): CompleteAction[] {
     const myValidTrees = this.trees.filter((tree) => tree.isMine && !tree.isDormant && tree.size === 3);
-    return [...myValidTrees.map((tree) => new CompleteAction(tree.cellIndex))];
+    const actions = [...myValidTrees.map((tree) => new CompleteAction(tree.cellIndex))];
+    actions.sort((a, b) => {
+      const results = {
+        a: 0,
+        b: 0,
+      };
+
+      for (let i = 0; i < profitSizes.length; i += 1) {
+        const aRes = this.simulateDayWithTree(this.day + i + 1, a.targetCellIdx, 3);
+        const bRes = this.simulateDayWithTree(this.day + i + 1, b.targetCellIdx, 3);
+        results.a += aRes.sunProfit + aRes.block.enemy - aRes.block.my * profitSizes[i];
+        results.b += bRes.sunProfit + bRes.block.enemy - bRes.block.my * profitSizes[i];
+      }
+
+      return results.b - results.a;
+    });
+    return actions;
   }
 
   getAllShadowTreesInRadius(cellIndex: number, radius: {1: boolean, 2: boolean, 3: boolean}): Tree[] {
@@ -378,6 +405,52 @@ class Game {
 
   findEl(x, y, z) {
     return Object.values(this.cellsMap).find((el) => el.x === x && el.y === y && el.z === z);
+  }
+
+  findTree(x, y, z): Tree | undefined {
+    const el = this.findEl(x, y, z);
+    if (el) {
+      return this.trees.find((tree) => tree.cellIndex === el.index);
+    }
+  }
+
+  simulateDayWithTree(day: number, cellIndex: number, size: 1 | 2 | 3): IDaySimulateResult {
+    const result: IDaySimulateResult = {
+      sunProfit: size,
+      block: {
+        enemy: 0,
+        my: 0,
+      }
+    };
+    const currentCycle = this.cycles[day % 6];
+    const cell = this.cellsMap[cellIndex];
+
+    for (let i = 3; i > 0; i -= 1) {
+      const possibleTree = this.findTree(
+        cell.x - i * currentCycle.diff.x, 
+        cell.y - i * currentCycle.diff.y,
+        cell.z - i * currentCycle.diff.z,
+      );
+
+      if (possibleTree && possibleTree.size >= i) {
+        result.sunProfit = 0;
+        break;
+      }
+    }
+
+    for (let i = 1; i <= 3; i += 1) {
+      const possibleTree = this.findTree(
+        cell.x + i * currentCycle.diff.x, 
+        cell.y + i * currentCycle.diff.y,
+        cell.z + i * currentCycle.diff.z,
+      );
+
+      if (possibleTree && possibleTree.size <= i) {
+        result.block[possibleTree.isMine ? 'my' : 'enemy'] += possibleTree.size;
+      }
+    }
+
+    return result;
   }
 }
 
