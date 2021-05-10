@@ -3,6 +3,7 @@ var app = new Vue({
   data: {
     isJsonDisplayed: false,
     selectedCellIndex: null,
+    selectedCellRadius: 'shadow',
     selectedDay: null,
     selectedColorsScheme: 'rainbow',
     inputDay: '',
@@ -128,6 +129,20 @@ var app = new Vue({
   computed: {
     selectedCell: function() {
       return this.cells[this.selectedCellIndex];
+    },
+    seedCells: function() {
+      let cells = [[], [], []];
+      if (this.selectedCellIndex !== null) {
+        cells = cells.map((_, index) => {
+          return Object.values(this.cells).filter((el) => {
+              const xDiff = el.x - this.selectedCell.x;
+              const yDiff = el.y - this.selectedCell.y;
+              const zDiff = el.z - this.selectedCell.z;
+              return Math.abs(xDiff) + Math.abs(yDiff) + Math.abs(zDiff) === (index + 1) * 2;
+            }).map((el) => el.index);
+        });
+      }
+      return cells;
     },
     shadowCells: function() {
       const cells = [[], [], []];

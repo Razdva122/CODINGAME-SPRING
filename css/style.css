@@ -59,7 +59,7 @@ ol.six {
   cursor: pointer;
 }
 
-.hex--selected {
+.hex--selected-shadow {
   background: #f4c430;
 }
 
@@ -73,6 +73,22 @@ ol.six {
 
 .hex--shadow-3 {
   background: #846507;
+}
+
+.hex--selected-seed {
+  background: #31f559;
+}
+
+.hex--seed-1 {
+  background: #0be838;
+}
+
+.hex--seed-2 {
+  background: #09b72c;
+}
+
+.hex--seed-3 {
+  background: #078621;
 }
 /* ----------------------------------------- */
 

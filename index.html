@@ -41,10 +41,14 @@
                         v-for="el, index in grid.elements" 
                         class="hex"
                         :class="{ 
-                                'hex--selected': el.index === selectedCellIndex,
-                                'hex--shadow-1': shadowCells[0].includes(el.index),
-                                'hex--shadow-2': shadowCells[1].includes(el.index),
-                                'hex--shadow-3': shadowCells[2].includes(el.index),
+                                'hex--selected-seed': el.index === selectedCellIndex && selectedCellRadius === 'seed',
+                                'hex--seed-1': seedCells[0].includes(el.index) && selectedCellRadius === 'seed',
+                                'hex--seed-2': seedCells[1].includes(el.index) && selectedCellRadius === 'seed',
+                                'hex--seed-3': seedCells[2].includes(el.index) && selectedCellRadius === 'seed',
+                                'hex--selected-shadow': el.index === selectedCellIndex && selectedCellRadius === 'shadow',
+                                'hex--shadow-1': shadowCells[0].includes(el.index) && selectedCellRadius === 'shadow',
+                                'hex--shadow-2': shadowCells[1].includes(el.index) && selectedCellRadius === 'shadow',
+                                'hex--shadow-3': shadowCells[2].includes(el.index) && selectedCellRadius === 'shadow',
                             }" 
                         :style="{ background: grid.colors[index] }"
                     >
@@ -67,13 +71,24 @@
                 </span>
                 <span v-else-if="selectedCell">
                     Cell №{{ selectedCell.index }}.<br>
+                    <input type="radio" id="shadow" value="shadow" v-model="selectedCellRadius">
+                    <label for="shadow">shadow radius</label>
+                    <input type="radio" id="seed" value="seed" v-model="selectedCellRadius">
+                    <label for="seed">seed radius</label><br>
                     Coordinates:<br>
                     x: {{selectedCell.x}},<br>
                     y: {{selectedCell.y}},<br>
                     z: {{selectedCell.z}},<br>
-                    First Shadows: {{ shadowCells[0] }}<br>
-                    Second Shadows: {{ shadowCells[1] }}<br>
-                    Third Shadows: {{ shadowCells[2] }}<br>
+                    <template v-if="selectedCellRadius === 'shadow'">
+                        First Shadows: {{ shadowCells[0] }}<br>
+                        Second Shadows: {{ shadowCells[1] }}<br>
+                        Third Shadows: {{ shadowCells[2] }}<br>
+                    </template>
+                    <template v-else>
+                        First Seeds: {{ seedCells[0] }}<br>
+                        Second Seeds: {{ seedCells[1] }}<br>
+                        Third Seeds: {{ seedCells[2] }}<br>
+                    </template>
                 </span>
                 <span v-else>
                     Here will be info
