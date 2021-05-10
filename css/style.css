@@ -56,7 +56,6 @@ ol.six {
 
 .hex:hover {
   background: #F58787;
-  cursor: pointer;
 }
 
 .hex--selected-shadow {
@@ -123,6 +122,7 @@ ol.six {
 }
 
 .grid-element-content {
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;

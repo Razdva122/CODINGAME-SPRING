@@ -220,7 +220,11 @@ class Game {
   getNextAction(): string {
     const myTrees = this.trees.filter((el) => el.isMine);
 
-    const waitActions = this.possibleActions.filter((el) => el.type === WAIT);
+    const waitActions = [{
+      toString() {
+        return 'WAIT';
+      }
+    }] as Action[];
 
     const growActions =
         this.possibleActions
@@ -232,51 +236,13 @@ class Game {
                 return bTree.size - aTree.size;
             });
 
-    const seedActions =
-      this.possibleActions
-        .filter((el) => el.type === SEED)
-        .sort((a, b) => {
-          if (this.day < this.lastDay + 1 / 3) {
-              const aCellNeighbors = this.cells
-              .find((el) => el.index === a.targetCellIdx)
-              .neighbors
-              .filter((el) => el !== -1)
-              .filter((el) => this.trees.find((tree) => tree.cellIndex === el && tree.size > 0))
-              .length;
-
-            const bCellNeighbors = this.cells
-              .find((el) => el.index === b.targetCellIdx)
-              .neighbors
-              .filter((el) => el !== -1)
-              .filter((el) => this.trees.find((tree) => tree.cellIndex === el && tree.size > 0))
-              .length;
-
-            return aCellNeighbors - bCellNeighbors;
-          } else {
-            const indexes = [
-              { start: 0, end: 6, value: 0},
-              { start: 7, end: 18, value: 1},
-              { start: 19, end: 36, value: 2},
-            ];
-
-            const aValue = indexes.find((el) => a.targetCellIdx >= el.start && a.targetCellIdx <= el.end).value;
-            const bValue = indexes.find((el) => a.targetCellIdx >= el.start && a.targetCellIdx <= el.end).value;
-            return aValue - bValue;
-          }
-        });
+    const seedActions = this.generateSeedActions();
 
     if (this.mySun < 5) {
       seedActions.length = 0;
     }
 
-    const completeActions =
-      this.possibleActions
-        .filter((el) => el.type === COMPLETE)
-        .sort((a, b) => {
-          const aCell = this.cells.find((el) => el.index === a.targetCellIdx);
-          const bCell = this.cells.find((el) => el.index === b.targetCellIdx);
-          return bCell.richness - aCell.richness;
-        });
+    const completeActions = this.generateCompleteActions();
 
     /*
      * 1. [grow, seed, wait]
@@ -319,7 +285,92 @@ class Game {
   }
 
   generateSeedActions(): SeedAction[] {
+    const myValidTrees = this.trees.filter((tree) => tree.isMine && !tree.isDormant && tree.size > 0);
+    const cellsTreesShadows = Object.keys(this.cellsMap).reduce<{ [key: number]: Tree[]}>((acc, el) => {
+      acc[Number(el)] = this.getAllShadowTreesInRadius(Number(el), {1: true, 2: true, 3: true});
+      return acc;
+    }, {});
 
+    const seeds = myValidTrees.reduce<SeedAction[]>((acc, el) => {
+      const variants = 
+        this.findClosestCellsIndexes(el.cellIndex, {1: el.size >= 1, 2: el.size >= 2, 3: el.size >= 3})
+        .filter((index) => {
+          const cell = this.cells.find((el) => el.index === index);
+          if (!cell) {
+            return false;
+          }
+          
+          if (cell.richness === 0) {
+            return false;
+          }
+
+          return !this.trees.find((tree) => tree.cellIndex === index);
+        });
+
+      return [...acc, ...variants.map((variant) => new SeedAction(variant, el.cellIndex))];
+    }, []);
+
+    seeds.sort((a, b) => {
+      return cellsTreesShadows[a.targetCellIdx].length - cellsTreesShadows[b.targetCellIdx].length;
+    });
+
+    return seeds;
+  }
+
+  generateCompleteActions(): CompleteAction[] {
+    const myValidTrees = this.trees.filter((tree) => tree.isMine && !tree.isDormant && tree.size === 3);
+    return [...myValidTrees.map((tree) => new CompleteAction(tree.cellIndex))];
+  }
+
+  getAllShadowTreesInRadius(cellIndex: number, radius: {1: boolean, 2: boolean, 3: boolean}): Tree[] {
+    const cells: Tree[] = [];
+    const currentCell = this.cellsMap[cellIndex];
+    Object.keys(radius).forEach((key) => {
+      if (!radius[key]) {
+        return;
+      }
+
+      this.cycles.forEach((cycle) => {
+        const possibleEl = this.findEl(
+          currentCell.x + cycle.diff.x * Number(key), 
+          currentCell.y + cycle.diff.y * Number(key), 
+          currentCell.z + cycle.diff.z * Number(key)
+        );
+
+        if (possibleEl) {
+          const tree = this.trees.find((tree) => tree.cellIndex === possibleEl.index);
+
+          if (tree) {
+            cells.push(tree);
+          }
+        }
+      });
+    })
+
+    return cells;
+  }
+
+  findClosestCellsIndexes(cellIndex: number, radius: {1: boolean, 2: boolean, 3: boolean}): number[] {
+    const indexes: number[] = [];
+    const currentCell = this.cellsMap[cellIndex];
+    Object.keys(radius).forEach((key) => {
+      if (!radius[key]) {
+        return;
+      }
+
+      indexes.push(...Object.values(this.cellsMap).filter((el) => {
+          const xDiff = el.x - currentCell.x;
+          const yDiff = el.y - currentCell.y;
+          const zDiff = el.z - currentCell.z;
+          return Math.abs(xDiff) + Math.abs(yDiff) + Math.abs(zDiff) === (Number(key)) * 2;
+        }).map((el) => el.index));
+    })
+
+    return indexes;
+  }
+
+  findEl(x, y, z) {
+    return Object.values(this.cellsMap).find((el) => el.x === x && el.y === y && el.z === z);
   }
 }
 
