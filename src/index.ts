@@ -262,7 +262,6 @@ class Game {
       [growActions, seedActions, waitActions],
       [growActions, waitActions],
       [completeActions, growActions, waitActions],
-      [completeActions, growActions, waitActions],
     ];
     
     const currentCycle = actions[Math.floor((this.day / (this.lastDay + 1)) * actions.length)];
@@ -311,7 +310,15 @@ class Game {
     }, []);
 
     seeds.sort((a, b) => {
-      return cellsTreesShadows[a.targetCellIdx].length - cellsTreesShadows[b.targetCellIdx].length;
+      const richnessDiff = 
+        this.cells.find((el) => el.index === b.targetCellIdx).richness -
+        this.cells.find((el) => el.index === a.targetCellIdx).richness;
+      
+      const treesDiff =
+        cellsTreesShadows[a.targetCellIdx].length -
+        cellsTreesShadows[b.targetCellIdx].length;
+
+      return richnessDiff * 3 + treesDiff;
     });
 
     return seeds;
