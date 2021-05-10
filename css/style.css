@@ -62,6 +62,18 @@ ol.six {
 .hex--selected {
   background: #f4c430;
 }
+
+.hex--shadow-1 {
+  background: #e5b00c;
+}
+
+.hex--shadow-2 {
+  background: #b48b0a;
+}
+
+.hex--shadow-3 {
+  background: #846507;
+}
 /* ----------------------------------------- */
 
 .menu {
@@ -88,7 +100,7 @@ ol.six {
 }
 
 .info {
-  width: 250px;
+  width: 300px;
   position: relative;
   top: -500px;
   right: -800px;

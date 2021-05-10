@@ -129,11 +129,27 @@ var app = new Vue({
     selectedCell: function() {
       return this.cells[this.selectedCellIndex];
     },
-    grids: function() {
-      const findEl = (x, y, z) => {
-        return Object.values(this.cells).find((el) => el.x === x && el.y === y && el.z === z);
+    shadowCells: function() {
+      const cells = [[], [], []];
+      if (this.selectedCellIndex !== null) {
+        this.cycles.forEach((cycle) => {
+          for (let i = 1; i <= 3; i += 1) {
+            const el = 
+              this.findEl(
+                this.selectedCell.x + cycle.diff.x * i, 
+                this.selectedCell.y + cycle.diff.y * i, 
+                this.selectedCell.z + cycle.diff.z * i
+              );
+            
+            if (el) {
+              cells[i - 1].push(el.index);
+            }
+          }
+        })
       }
-
+      return cells;
+    },
+    grids: function() {
       const colors = new Array(37).fill('');
       if (this.selectedDay !== null) {
         const currentCycle = this.cycles[this.selectedDay % 6];
@@ -142,10 +158,9 @@ var app = new Vue({
           let lastEl = this.cells[start];
           let innerIndex = 0;
           while (true) {
-            console.log(this.selectedColorsScheme);
             colors[lastEl.index] = this.colors[this.selectedColorsScheme][innerIndex][index];
             innerIndex += 1;
-            lastEl = findEl(lastEl.x + currentCycle.diff.x, lastEl.y + currentCycle.diff.y, lastEl.z + currentCycle.diff.z);
+            lastEl = this.findEl(lastEl.x + currentCycle.diff.x, lastEl.y + currentCycle.diff.y, lastEl.z + currentCycle.diff.z);
             if (!lastEl) {
               break;
             }
@@ -229,5 +244,8 @@ var app = new Vue({
 
       this.inputDay = '';
     },
+    findEl(x, y, z) {
+      return Object.values(this.cells).find((el) => el.x === x && el.y === y && el.z === z);
+    }
   }
 });

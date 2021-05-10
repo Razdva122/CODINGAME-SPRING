@@ -40,7 +40,12 @@
                     <li
                         v-for="el, index in grid.elements" 
                         class="hex"
-                        :class="{ 'hex--selected': el.index === selectedCellIndex }" 
+                        :class="{ 
+                                'hex--selected': el.index === selectedCellIndex,
+                                'hex--shadow-1': shadowCells[0].includes(el.index),
+                                'hex--shadow-2': shadowCells[1].includes(el.index),
+                                'hex--shadow-3': shadowCells[2].includes(el.index),
+                            }" 
                         :style="{ background: grid.colors[index] }"
                     >
                         <div class="grid-element-content" @click="selectCell(el.index)"> {{ el.index }} </div>
@@ -66,6 +71,9 @@
                     x: {{selectedCell.x}},<br>
                     y: {{selectedCell.y}},<br>
                     z: {{selectedCell.z}},<br>
+                    First Shadows: {{ shadowCells[0] }}<br>
+                    Second Shadows: {{ shadowCells[1] }}<br>
+                    Third Shadows: {{ shadowCells[2] }}<br>
                 </span>
                 <span v-else>
                     Here will be info
